@@ -1,0 +1,42 @@
+---
+- name: install aptitude
+  become: yes
+  apt:
+      name: aptitude
+      update_cache: yes
+- name: upgrade system
+  become: yes
+  apt:
+      upgrade: safe
+- name: install mercurial deps, pip, and git
+  become: yes
+  apt:
+    name: "{{item}}"
+    state: latest
+  with_items:
+    - "python-pip"
+    - "python-dev"
+    - "ca-certificates"
+    - "git"
+- name: install mercurial
+  become: yes
+  pip:
+    name: "mercurial"
+- name: create build user
+  become: yes
+  user:
+    name: build
+    home: /home/build
+- name: add vagrant to build group
+  become: yes
+  user:
+    name: vagrant
+    groups: build
+    append: yes
+- name: create repos dir
+  become: yes
+  file:
+    path: /repos
+    owner: vagrant
+    group: build
+    state: directory

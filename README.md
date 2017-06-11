@@ -1,0 +1,1 @@
+This is a Vagrant setup which creates a network of VMs for DXR indexing the webrtc.org codebase, private mozilla branches, and perhaps chromium in the future.

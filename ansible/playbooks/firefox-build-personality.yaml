@@ -1,0 +1,51 @@
+---
+- name: firefox-build-personality
+  hosts: firefox-build
+  tasks:
+  - name: base configuration
+    include: base-configuration.yaml
+  - name: download bootstrap script
+    command: "curl https://hg.mozilla.org/mozilla-central/raw-file/default/python/mozboot/bin/bootstrap.py -o {{ ansible_env.HOME }}/bootstrap.py"
+  - name: chmod bootstrap script
+    file:
+      path: "{{ ansible_env.HOME }}/bootstrap.py"
+      mode: "u+x"
+  - name: removing old rust install
+    become: yes
+    file:
+      path: /root/.cargo
+      state: absent
+  - name: run bootstrap script
+    become: "yes"
+    become_method: "sudo"
+    environment:
+      PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+    command: "{{ ansible_env.HOME }}/bootstrap.py --application-choice=browser --no-interactive"
+  - name: remove bootstrap script
+    file:
+      path: "{{ ansible_env.HOME }}/bootstrap.py"
+      state: absent
+  - name: build user
+    become: "yes"
+    user:
+      name: build
+      home: "/home/build"
+  - name: download rustup
+    become: yes
+    become_user: build
+    command: "curl https://sh.rustup.rs -o /home/build/rustup.sh"
+  - name: install rust for build
+    become: yes
+    become_user: build
+    environment:
+      PATH: "/home/build/.cargo/bin:{{ ansible_env.PATH }}"
+    command: "sh rustup.sh -y"
+    args:
+      chdir: /home/build
+  - name: remove rustup script
+    become: yes
+    become_user: build  
+    file:
+      path: /home/build/rustup.sh
+      state: absent
+

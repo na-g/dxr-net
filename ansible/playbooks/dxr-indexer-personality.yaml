@@ -1,0 +1,12 @@
+---
+-
+  hosts: dxr-indexer
+  become: yes
+  user: build
+  tasks:
+  - name: clone dxr
+    git:
+      repo: "https://github.com/mozilla/dxr.git"
+      clone: "yes"
+      update: "yes"
+      dest: /repos/dxr

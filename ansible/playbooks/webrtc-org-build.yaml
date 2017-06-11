@@ -1,0 +1,18 @@
+---
+-
+  hosts: webrtc-build
+  become: "yes"
+  become_user: build
+  tasks:
+  - name: generate ninja project files
+    command: gn gen out/Default
+    args:
+        chdir: /repos/webrtc-checkout/src
+    environment:
+      PATH: "/repos/depot_tools:{{ ansible_env.PATH }}"
+  - name: build
+    command: ninja -C out/Default
+    args:
+        chdir: /repos/webrtc-checkout/src
+    environment:
+      PATH: "/repos/depot_tools:{{ ansible_env.PATH }}"

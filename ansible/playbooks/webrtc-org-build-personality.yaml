@@ -1,0 +1,49 @@
+---
+# The inability to run the build deps script without first "fetching"
+# the nearly 7GB of Chromimum source, is an unacceptable waste of time.
+# Perhaps there is a way around this.
+-
+  hosts: webrtc-build
+  user: vagrant
+  tasks:
+  - name: base configuration
+    include: base-configuration.yaml
+  - name: download chromium depot_tools
+    become: yes
+    become_user: build
+    git:
+      repo: "https://chromium.googlesource.com/chromium/tools/depot_tools.git"
+      clone: yes
+      update: yes
+      dest: /repos/depot_tools
+  - name: create webrtc-checkout dir
+    file:
+      path: /repos/webrtc-checkout/
+      state: directory
+  - name: run fetch
+    command: "fetch --nohooks webrtc"
+    args:
+      chdir: /repos/webrtc-checkout
+      creates: /repos/webrtc-checkout/src
+    environment:
+      PATH: "/repos/depot_tools:{{ ansible_env.PATH }}"
+  - name: run gsync
+    command: "gclient sync"
+    args:
+      chdir: /repos/webrtc-checkout
+    environment:
+      PATH: "/repos/depot_tools:{{ ansible_env.PATH }}"
+  - name: run build deps script
+    become: "yes"
+    command: ./src/build/install-build-deps.sh --no-prompt
+    args:
+      chdir: /repos/webrtc-checkout
+    environment:
+      PATH: "/repos/depot_tools:{{ ansible_env.PATH }}"
+  - name: set repo permissions
+    become: "yes"
+    file:
+      path: /repos/
+      group: build
+      owner: build
+      recurse: "yes"
