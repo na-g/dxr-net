@@ -10,3 +10,31 @@
       clone: "yes"
       update: "yes"
       dest: /repos/dxr
+  - name: install dxr prerequisites
+    command: sh /repos/dxr/tooling/docker/dev/set_up_ubuntu.sh
+    become: yes
+  - name: create dxr virtual env
+    command: virtualenv dxr_venv
+    args:
+      chdir: /home/build
+  - name: install dxr requirements
+    command: /home/build/dxr_venv/bin/python tooling/peep.py install -r requirements.txt
+    args:
+      chdir: /repos/dxr
+  - name: install dxr
+    command: /home/build/dxr_venv/bin/pip install --no-deps .
+    args:
+      chdir: /repos/dxr
+  - name: create indexer configuration directory
+    become: yes
+    file:
+      path: /dxr
+      owner: build
+      group: build
+      state: directory
+  - name: install indexer configurations
+    copy:
+      src: ../../dxr/configurations
+      dest: /dxr/
+      owner: build
+      group: build
