@@ -4,7 +4,8 @@
 groups = {
   "firefox-build" => ["fxbuild00"],
   "webrtc-build" => ["webrtcbuild00"],
-  "dxr-indexer" => ["fxbuild00", "webrtcbuild00"]
+  "dxr-indexer" => ["fxbuild00", "webrtcbuild00"],
+  "es-node" => ["es00"],
 }
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
@@ -18,10 +19,16 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "ubuntu/xenial64"
 
   config.vm.define "fxbuild00"
   config.vm.define "webrtcbuild00"
+
+  # Create an Elastic Search Node
+  config.vm.define "es00" do |es|
+    config.vm.network "forwarded_port", guest: 9200, host: 9200
+  end
+
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
@@ -83,6 +90,9 @@ Vagrant.configure("2") do |config|
   #   apt-get install -y apache2
   # SHELL
 
+  #Install Python 2 for Ansible
+  config.vm.provision "shell", inline: "sudo apt-get install python-minimal --yes"
+
   config.vm.provision 'dxr-indexer', type: "ansible" do |ansible|
     ansible.groups = groups
     ansible.verbose = "v"
@@ -100,5 +110,11 @@ Vagrant.configure("2") do |config|
     ansible.verbose = "v"
     ansible.playbook = "../ansible/playbooks/webrtc-org-build-personality.yaml"
   end
-  
+
+  config.vm.provision "es-node", type: "ansible" do |ansible|
+    ansible.groups = groups
+    ansible.verbose = "v"
+    ansible.playbook = "../ansible/playbooks/es-node-personality.yaml"
+  end
+
 end

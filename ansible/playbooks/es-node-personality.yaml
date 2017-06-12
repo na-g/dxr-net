@@ -1,0 +1,38 @@
+---
+- name: es-node-personality
+  hosts: es-node
+  tasks:
+  - name: base configuration
+    include: base-configuration.yaml
+  - name: install elastic search PGP key
+    become: yes
+    apt_key:
+      url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+      state: present
+  - name: install elastic search deb repo definition
+    become: yes
+    copy:
+      content: deb https://artifacts.elastic.co/packages/5.x/apt stable main
+      dest: /etc/apt/sources.list.d/elastic-5.x.list
+  - name: install elastic search
+    become: yes
+    apt:
+      update_cache: yes
+      name: "{{item}}"
+    with_items:
+      - elasticsearch
+      - openjdk-8-jre
+  - name: install elastic search configuration
+    become: yes
+    copy:
+      src: ../../elasticsearch/elasticsearch.yml
+      dest: /etc/elasticsearch/
+      owner: root
+      group: elasticsearch
+  - name: enable elastic search service
+    become: yes
+    systemd:
+      name: elasticsearch
+      enabled: yes
+      masked: no
+      state: started
