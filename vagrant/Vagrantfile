@@ -82,7 +82,13 @@ Vagrant.configure("2") do |config|
   #   apt-get update
   #   apt-get install -y apache2
   # SHELL
-  
+
+  config.vm.provision 'dxr-indexer', type: "ansible" do |ansible|
+    ansible.groups = groups
+    ansible.verbose = "v"
+    ansible.playbook = "../ansible/playbooks/dxr-indexer-personality.yaml"
+  end
+
   config.vm.provision 'firefox-build', type: "ansible" do |ansible|
     ansible.groups = groups
     ansible.verbose = "v"
@@ -93,12 +99,6 @@ Vagrant.configure("2") do |config|
     ansible.groups = groups
     ansible.verbose = "v"
     ansible.playbook = "../ansible/playbooks/webrtc-org-build-personality.yaml"
-  end
-
-  config.vm.provision 'dxr-indexer', type: "ansible" do |ansible|
-    ansible.groups = groups
-    ansible.verbose = "v"
-    ansible.playbook = "../ansible/playbooks/dxr-indexer-personality.yaml"
   end
   
 end
